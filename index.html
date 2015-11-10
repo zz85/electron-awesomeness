@@ -13,7 +13,7 @@
 
 			<section class="main">
 
-				<h2>Apps</h2>
+				<h2>Awesome Electron Apps</h2>
 
 				<div id="apps">
 				</div>
@@ -32,16 +32,33 @@
 			const applist = require('./applist')
 			const path = require('path')
 			const spawn = require('child_process').spawn
-			const spawnSync = require('child_process').spawnSync;
+			const fs = require('fs')
 
 			const APP_LOCATION = path.join(__dirname, 'apps')
 
 			function gitClone(url, target) {
 				console.log('gitClone', url)
+
+				let ssh_url = `git@github.com:${url}.git`
+				let https_url = `https://github.com/${url}`
+
+
 				let child = spawn('git',
-					['clone', 'https://github.com/' + url, path.join(APP_LOCATION, target)],
+					['clone', ssh_url, target],
 					{
 						cwd: __dirname,
+						stdio: 'pipe'
+					});
+
+				handleChild(child)
+			}
+
+			function gitPull(target) {
+				console.log('gitPull', target)
+				let child = spawn('git',
+					['pull'],
+					{
+						cwd: target,
 						stdio: 'pipe'
 					});
 
@@ -51,7 +68,7 @@
 			function npmInstall(target) {
 				console.log('npmInstall', path)
 				let child = spawn('npm', ['install', '--production'], {
-					cwd: path.join(APP_LOCATION, target),
+					cwd: target,
 					stdio: 'pipe'
 				});
 
@@ -61,7 +78,7 @@
 			function runElectron(target) {
 				console.log('runElectron', path)
 				let child = spawn('electron', ['.'], {
-					cwd: path.join(APP_LOCATION, target),
+					cwd: target,
 					stdio: 'pipe'
 				})
 
@@ -80,55 +97,109 @@
 
 				child.on('close', function (code) {
 					if (code !== 0) {
-						console.log('process exited with code ' + code);
+						console.log('exit', code);
+						log.innerHTML += 'process exited with code ' + code + '\n'
+					} else {
+						log.innerHTML += 'Done\n'
+						refresh()
 					}
+
 				});
 			}
 
-			applist.forEach(function(project) {
-				apps.appendChild(text(project.name))
+			function eachApp(project) {
+				apps.appendChild(text(project.name + ' - ' + project.description))
 
 				let p = document.createElement('ul');
 
-				p.appendChild(element('li', text(project.repository)))
-				p.appendChild(element('li', text(project.description)))
+				let repoDir = project.repository.replace('/', '_')
 
-				let unique_id = project.repository.replace('/', '_')
-				console.log('unique_id', unique_id)
-
-				let a = element('a', text('Homepage'))
-				a.href = project.url
-				a.onclick = function() {
+				let homepage = element('button', text('Homepage'))
+				homepage.onclick = function() {
+					shell.openExternal(project.url)
 					return false
 				}
 
-				let clone = element('button', text('Git clone'))
-				clone.onclick = function() {
-					gitClone(project.repository, unique_id)
-				}
-				p.appendChild(element('li', clone))
+				let targetDir = path.join(APP_LOCATION, repoDir)
 
+				let folderExist = false
+				let isGit = false
+
+				try {
+					let folder = fs.lstatSync(targetDir)
+					folderExist = folder.isDirectory()
+
+					let gitDir = path.join(targetDir, '.git')
+					isGit = fs.lstatSync(gitDir).isDirectory()
+				} catch (e) {
+
+				}
+
+				if (!folderExist) {
+
+					let clone = element('button', text('Git clone'))
+
+					clone.onclick = function() {
+						gitClone(project.repository, targetDir)
+					}
+					p.appendChild(element('li', clone))
+
+				} else {
+
+					let clone = element('button', text('Git pull'))
+					clone.onclick = function() {
+						gitPull(targetDir)
+					}
+					p.appendChild(element('li', clone))
+
+				}
 				// let update = element('button', text('Git update'))
 				// p.appendChild(element('li', update))
 
 				// let dlSource = element('button', text('Download source & extract'))
 				// p.appendChild(element('li', dlSource))
 
-				let dep = element('button', text('Install dependencies'))
-				dep.onclick = function() {
-					npmInstall(unique_id)
-				}
-				p.appendChild(element('li', dep))
+				if (folderExist) {
 
-				let run = element('button', text('Run App!!!'))
-				run.onclick = function() {
-					runElectron(unique_id)
-				}
-				p.appendChild(element('li', run))
+					let dep = element('button', text('Install dependencies'))
+					dep.onclick = function() {
+						npmInstall(targetDir)
+					}
+					p.appendChild(element('li', dep))
 
-				p.appendChild(element('li', a))
+					let run = element('button', text('Run App!!!'))
+					run.onclick = function() {
+						runElectron(targetDir)
+					}
+					p.appendChild(element('li', run))
+
+					let trash = element('button', text('Trash'))
+					trash.onclick = function() {
+						if (!confirm('Move "' + project.name + '" to trash?')) return
+
+						if (shell.moveItemToTrash(targetDir)) {
+							shell.beep()
+							refresh()
+						}
+					}
+					p.appendChild(element('li', trash))
+
+					let openDirectory = element('button', text('Locate in Finder'))
+					openDirectory.onclick = function() {
+						shell.showItemInFolder(targetDir)
+					}
+					p.appendChild(element('li', openDirectory))
+
+				}
+
+				p.appendChild(element('li', homepage))
 				apps.appendChild(p)
-			})
+			}
+
+			function refresh() {
+				apps.innerHTML = ''
+				applist.forEach(eachApp)
+			}
 
 			function element(e, child) {
 				var el = document.createElement(e)
@@ -139,6 +210,8 @@
 			function text(t) {
 				return document.createTextNode(t)
 			}
+
+			refresh()
 		</script>
 
 	</body>

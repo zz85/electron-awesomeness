@@ -19,8 +19,8 @@ function onClosed() {
 
 function createMainWindow() {
 	const win = new BrowserWindow({
-		width: 600,
-		height: 400
+		width: 400,
+		height: 600
 	});
 
 	win.loadUrl(`file://${__dirname}/index.html`);
