@@ -25,8 +25,6 @@
 			<footer></footer>
 		</div>
 
-
-
 		<script>
 			'use strict'
 
@@ -40,64 +38,51 @@
 
 			function gitClone(url, target) {
 				console.log('gitClone', url)
-				var results = spawnSync('git',
+				let child = spawn('git',
 					['clone', 'https://github.com/' + url, path.join(APP_LOCATION, target)],
-					{cwd: __dirname, stdio: 'pipe'});
+					{
+						cwd: __dirname,
+						stdio: 'pipe'
+					});
 
-				log.innerHTML += results.stderr
-				log.innerHTML += results.stdout
-
-				console.log('ran', results.args.join(' '))
-
-				// If there was an error, throw it
-				if (results.error) {
-					console.error(results.error)
-					throw results.error;
-				}
-
-				console.log('results', results)
+				handleChild(child)
 			}
 
 			function npmInstall(target) {
 				console.log('npmInstall', path)
-				var results = spawnSync('npm',
-					['install', '--production'],
-					{cwd: path.join(APP_LOCATION, target), stdio: 'pipe'});
+				let child = spawn('npm', ['install', '--production'], {
+					cwd: path.join(APP_LOCATION, target),
+					stdio: 'pipe'
+				});
 
-				console.log('ran', results.args.join(' '))
-
-				// If there was an error, throw it
-				if (results.error) {
-					log.innerHTML += results.error
-					throw results.error;
-				}
-
-				log.innerHTML += results.stderr
-				log.innerHTML += results.stdout
-
-
-
-				console.log('results', results)
+				handleChild(child)
 			}
 
 			function runElectron(target) {
 				console.log('runElectron', path)
-				var results = spawnSync('electron',
-					['.'],
-					{cwd: path.join(APP_LOCATION, target), stdio: 'pipe'});
+				let child = spawn('electron', ['.'], {
+					cwd: path.join(APP_LOCATION, target),
+					stdio: 'pipe'
+				})
 
-				console.log('ran', results.args.join(' '))
+				handleChild(child)
+			}
 
-				// If there was an error, throw it
-				if (results.error) {
-					log.innerHTML += results.error
-					throw results.error;
-				}
+			function handleChild(child) {
+				console.log('running', child.spawnargs.join(' '))
+				child.stderr.on('data', function(data) {
+					log.innerHTML += data
+				})
 
-				log.innerHTML += results.stderr
-				log.innerHTML += results.stdout
+				child.stdout.on('data', function(data) {
+					log.innerHTML += data
+				})
 
-				console.log('results', results)
+				child.on('close', function (code) {
+					if (code !== 0) {
+						console.log('process exited with code ' + code);
+					}
+				});
 			}
 
 			applist.forEach(function(project) {
