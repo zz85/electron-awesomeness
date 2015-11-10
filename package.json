@@ -1,14 +1,14 @@
 {
-  "name": "app",
-  "productName": "App",
+  "name": "electron-awesomeness",
+  "productName": "Electron Awesomeness",
   "version": "0.0.0",
-  "description": "",
+  "description": "Electron App to manage Electron Apps",
   "license": "MIT",
-  "repository": "user/repo",
+  "repository": "zz85/electron-awesomeness",
   "author": {
-    "name": "",
+    "name": "Joshua Koo",
     "email": "",
-    "url": ""
+    "url": "https://joshuakoo.com"
   },
   "engines": {
     "node": ">=4"
@@ -31,8 +31,6 @@
     "electron-debug": "^0.3.0"
   },
   "devDependencies": {
-    "electron-packager": "^5.0.0",
-    "electron-prebuilt": "^0.34.1",
     "xo": "^0.10.0"
   },
   "xo": {
