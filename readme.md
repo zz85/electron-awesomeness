@@ -20,15 +20,9 @@ So the idea is to run apps like a developer using a global Electron binary. Mayb
 
 First make sure you have electron installed globally. This app will contain a list of apps that can be checked out or downloaded from github. When it's downloaded, each project would run `npm install --production` to make sure its dependencies are fullfilled. `Electron .` will be ran in each folder to spawn the electron apps.
 
-## Dev
-
-```
-$ npm install --production
-```
-
 ### Run
 
 ```
-$ npm start
+$ electron .
 ```
 

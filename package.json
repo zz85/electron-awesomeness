@@ -28,16 +28,7 @@
     "electron-app"
   ],
   "dependencies": {
-    "electron-debug": "^0.3.0"
   },
   "devDependencies": {
-    "xo": "^0.10.0"
-  },
-  "xo": {
-    "esnext": true,
-    "envs": [
-      "node",
-      "browser"
-    ]
   }
 }
