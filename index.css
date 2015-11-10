@@ -9,13 +9,6 @@ body {
 }
 
 header {
-	position: absolute;
-	width: 500px;
-	height: 250px;
-	top: 50%;
-	left: 50%;
-	margin-top: -125px;
-	margin-left: -250px;
 	text-align: center;
 }
 
@@ -24,4 +17,19 @@ header h1 {
 	font-weight: 100;
 	margin: 0;
 	padding: 0;
+}
+
+#log {
+	font-family: monospace;
+	border: 1px solid #333;
+	background: #666;
+	color: #eee;
+	overflow: auto;
+	height: 200px;
+	padding: 10px;
+
+}
+
+.main {
+	padding: 10px;
 }

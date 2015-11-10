@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Electron boilerplate</title>
+		<title>Electron Awesomeness</title>
 		<link rel="stylesheet" href="index.css">
 	</head>
 	<body>
@@ -10,8 +10,151 @@
 			<header>
 				<h1>Electron Awesomeness</h1>
 			</header>
-			<section class="main"></section>
+
+			<section class="main">
+
+				<h2>Apps</h2>
+
+				<div id="apps">
+				</div>
+
+				<h2>Log</h2>
+				<pre id="log"></pre>
+
+			</section>
 			<footer></footer>
 		</div>
+
+
+
+		<script>
+			'use strict'
+
+			const shell = require('shell')
+			const applist = require('./applist')
+			const path = require('path')
+			const spawn = require('child_process').spawn
+			const spawnSync = require('child_process').spawnSync;
+
+			const APP_LOCATION = path.join(__dirname, 'apps')
+
+			function gitClone(url, target) {
+				console.log('gitClone', url)
+				var results = spawnSync('git',
+					['clone', 'https://github.com/' + url, path.join(APP_LOCATION, target)],
+					{cwd: __dirname, stdio: 'pipe'});
+
+				log.innerHTML += results.stderr
+				log.innerHTML += results.stdout
+
+				console.log('ran', results.args.join(' '))
+
+				// If there was an error, throw it
+				if (results.error) {
+					console.error(results.error)
+					throw results.error;
+				}
+
+				console.log('results', results)
+			}
+
+			function npmInstall(target) {
+				console.log('npmInstall', path)
+				var results = spawnSync('npm',
+					['install', '--production'],
+					{cwd: path.join(APP_LOCATION, target), stdio: 'pipe'});
+
+				console.log('ran', results.args.join(' '))
+
+				// If there was an error, throw it
+				if (results.error) {
+					log.innerHTML += results.error
+					throw results.error;
+				}
+
+				log.innerHTML += results.stderr
+				log.innerHTML += results.stdout
+
+
+
+				console.log('results', results)
+			}
+
+			function runElectron(target) {
+				console.log('runElectron', path)
+				var results = spawnSync('electron',
+					['.'],
+					{cwd: path.join(APP_LOCATION, target), stdio: 'pipe'});
+
+				console.log('ran', results.args.join(' '))
+
+				// If there was an error, throw it
+				if (results.error) {
+					log.innerHTML += results.error
+					throw results.error;
+				}
+
+				log.innerHTML += results.stderr
+				log.innerHTML += results.stdout
+
+				console.log('results', results)
+			}
+
+			applist.forEach(function(project) {
+				apps.appendChild(text(project.name))
+
+				let p = document.createElement('ul');
+
+				p.appendChild(element('li', text(project.repository)))
+				p.appendChild(element('li', text(project.description)))
+
+				let unique_id = project.repository.replace('/', '_')
+				console.log('unique_id', unique_id)
+
+				let a = element('a', text('Homepage'))
+				a.href = project.url
+				a.onclick = function() {
+					return false
+				}
+
+				let clone = element('button', text('Git clone'))
+				clone.onclick = function() {
+					gitClone(project.repository, unique_id)
+				}
+				p.appendChild(element('li', clone))
+
+				// let update = element('button', text('Git update'))
+				// p.appendChild(element('li', update))
+
+				// let dlSource = element('button', text('Download source & extract'))
+				// p.appendChild(element('li', dlSource))
+
+				let dep = element('button', text('Install dependencies'))
+				dep.onclick = function() {
+					npmInstall(unique_id)
+				}
+				p.appendChild(element('li', dep))
+
+				let run = element('button', text('Run App!!!'))
+				run.onclick = function() {
+					runElectron(unique_id)
+				}
+				p.appendChild(element('li', run))
+
+				p.appendChild(element('li', a))
+				apps.appendChild(p)
+			})
+
+			function element(e, child) {
+				var el = document.createElement(e)
+				el.appendChild(child)
+				return el
+			}
+
+			function text(t) {
+				return document.createTextNode(t)
+			}
+		</script>
+
 	</body>
 </html>
